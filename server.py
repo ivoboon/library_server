@@ -6,10 +6,34 @@ import database
 
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
-		self.send_response(200)
-		self.send_header("Content-type", "text/html")
-		self.end_headers()
-		self.wfile.write(b"Hello world!")
+		path_parts = self.path.split('/')
+		resource = path_parts[1]
+		record_id = path_parts[-1]
+
+		if resource == 'users':
+			user = database.get_user(record_id)
+			if user:
+				self.send_response(200)
+				self.send_header("Content-type", "application/json")
+				self.end_headers()
+				response = {
+					"ID": user[0],
+					"NAME": user[1]
+				}
+				self.wfile.write(json.dumps(response).encode())
+			else:
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "User not found"}')
+
+		if resource == 'hello':
+			response = f"Hello, {record_id}"
+			byte_string = response.encode('utf-8')
+			self.send_response(200)
+			self.send_header("Content-type", "text/plain")
+			self.end_headers()
+			self.wfile.write(byte_string)
+
 
 def get_ip_address():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -23,8 +23,16 @@ def initialise_database():
 def add_user():
 	pass
 
-def get_user():
-	pass
+def get_user(user_id):
+	conn = sqlite3.connect('library.db')
+	c = conn.cursor()
+
+	c.execute('SELECT ID, NAME FROM USERS WHERE ID = ?', (user_id))
+	user = c.fetchone()
+	conn.close()
+
+	return user
+
 
 def update_user():
 	pass
