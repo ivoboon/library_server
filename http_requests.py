@@ -10,7 +10,7 @@ def get_ip_address():
 
 ip = get_ip_address()
 port = 8080
-url = f"http://{ip}:{port}"
+url = f"http://{ip}:{port}/users/1"
 response = requests.get(url)
 
 print(response.status_code)
