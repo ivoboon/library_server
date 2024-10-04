@@ -5,12 +5,16 @@ import socket
 import database
 
 class Handler(BaseHTTPRequestHandler):
+	def get_path_parts(self):
+		path_parts = self.path.strip('/').split('/')
+		return path_parts
+
 	def do_GET(self):
-		path_parts = self.path.split('/')
-		resource = path_parts[1]
-		record_id = path_parts[-1]
+		path_parts = self.get_path_parts()
+		resource = path_parts[0]
 
 		if resource == 'users':
+			record_id = path_parts[1]
 			user = database.get_user(record_id)
 			if user:
 				self.send_response(200)
@@ -25,15 +29,30 @@ class Handler(BaseHTTPRequestHandler):
 				self.send_response(404)
 				self.end_headers()
 				self.wfile.write(b'{"error": "User not found"}')
+		
 
-		if resource == 'hello':
-			response = f"Hello, {record_id}"
-			byte_string = response.encode('utf-8')
-			self.send_response(200)
-			self.send_header("Content-type", "text/plain")
+
+	def do_POST(self):
+		path_parts = self.get_path_parts()
+		resource = path_parts[0]
+
+		content_length = int(self.headers['Content-Length'])
+		post_data = self.rfile.read(content_length)
+		data = json.loads(post_data)
+
+		if resource == 'users':
+			user_id = database.add_user(data)
+			self.send_response(201)
+			self.send_header("Content-type", "application/json")
 			self.end_headers()
-			self.wfile.write(byte_string)
+			self.wfile.write(json.dumps({"id": user_id}).encode())
 
+	
+	def do_PUT(self):
+		pass
+
+	def do_DELTE(self):
+		pass
 
 def get_ip_address():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
