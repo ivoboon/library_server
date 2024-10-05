@@ -13,7 +13,7 @@ class Handler(BaseHTTPRequestHandler):
 		path_parts = self.get_path_parts()
 		resource = path_parts[0]
 
-		if resource == 'users':
+		if resource == 'users' and len(path_parts) > 1:
 			record_id = path_parts[1]
 			user = database.get_user(record_id)
 			if user:
@@ -51,7 +51,7 @@ class Handler(BaseHTTPRequestHandler):
 	def do_PUT(self):
 		pass
 
-	def do_DELTE(self):
+	def do_DELETE(self):
 		pass
 
 def get_ip_address():
