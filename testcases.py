@@ -29,3 +29,12 @@ if response.status_code == 200:
 	print("User retrieved:", response.json())
 else:
 	print("Error:", response.json())
+
+# Update a user
+url_r = url + '/users/' + user_id
+data = {"name": "Test User 123"}
+response = requests.put(url_r, json=data)
+if response.status_code == 200:
+	print("User updated:", response.json())
+else:
+	print("Error:", response.json())

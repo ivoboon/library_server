@@ -49,7 +49,26 @@ class Handler(BaseHTTPRequestHandler):
 
 	
 	def do_PUT(self):
-		pass
+		path_parts = self.get_path_parts()
+		resource = path_parts[0]
+
+		content_length = int(self.headers['Content-length'])
+		put_data = self.rfile.read(content_length)
+		updated_data = json.loads(put_data)
+
+		if resource == 'users' and len(path_parts) > 1:
+			record_id = path_parts[1]
+			if database.get_user(record_id):
+				database.update_user(record_id, updated_data)
+				self.send_response(200)
+				self.send_header("Content-type", "application/json")
+				self.end_headers()
+				self.wfile.write(json.dumps({"message:": "User updated"}).encode())
+			else:
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "User not found"}')
+
 
 	def do_DELETE(self):
 		pass

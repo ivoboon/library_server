@@ -7,6 +7,7 @@ def connect():
 	cursor = conn.cursor()
 	return conn, cursor
 
+
 def initialise_database():
 	conn, cursor = connect()
 	cursor.execute('''
@@ -25,6 +26,7 @@ def initialise_database():
 	conn.commit()
 	conn.close()
 
+
 def add_user(user):
 	conn, cursor = connect()
 
@@ -36,6 +38,7 @@ def add_user(user):
 
 	return user_id
 
+
 def get_user(user_id):
 	conn, cursor = connect()
 
@@ -46,8 +49,14 @@ def get_user(user_id):
 	return user
 
 
-def update_user():
-	pass
+def update_user(user_id, user):
+	conn, cursor = connect()
+
+	cursor.execute('UPDATE USERS SET NAME = ? WHERE ID = ?', (user['name'], user_id))
+
+	conn.commit()
+	conn.close()
+
 
 def delete_user():
 	pass
