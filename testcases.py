@@ -38,3 +38,13 @@ if response.status_code == 200:
 	print("User updated:", response.json())
 else:
 	print("Error:", response.json())
+
+# Delete a user
+print('Press enter to delete the user')
+input()
+url_r = url + '/users/' + user_id
+response = requests.delete(url_r)
+if response.status_code == 204:
+	print("User deleted successfully")
+else:
+	print("Error:", response.json())

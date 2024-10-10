@@ -71,7 +71,20 @@ class Handler(BaseHTTPRequestHandler):
 
 
 	def do_DELETE(self):
-		pass
+		path_parts = self.get_path_parts()
+		resource = path_parts[0]
+		print(resource)
+
+		if resource == 'users' and len(path_parts) > 1:
+			record_id = path_parts[1]
+			if database.get_user(record_id):
+				database.delete_user(record_id)
+				self.send_response(204)
+				self.end_headers()
+			else:
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "User not found"}')
 
 def get_ip_address():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

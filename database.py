@@ -58,8 +58,13 @@ def update_user(user_id, user):
 	conn.close()
 
 
-def delete_user():
-	pass
+def delete_user(user_id):
+	conn, cursor = connect()
+
+	cursor.execute('DELETE FROM USERS WHERE ID = ?', (user_id,))
+
+	conn.commit()
+	conn.close()
 
 def add_book():
 	pass
