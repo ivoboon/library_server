@@ -10,12 +10,12 @@ def get_ip_address():
 
 ip = get_ip_address()
 port = 8080
-url = f"http://{ip}:{port}"
+url_b = f"http://{ip}:{port}"
 
 # Add a user
-url_r = url + '/users'
+url = url_b + '/users'
 data = {"name": "Test User"}
-response = requests.post(url_r, json=data)
+response = requests.post(url, json=data)
 if response.status_code == 201:
 	print("User created:", response.json())
 else:
@@ -23,28 +23,70 @@ else:
 
 # Get a user
 user_id = response.json()['id']
-url_r = url + '/users/' + user_id
-response = requests.get(url_r)
+url = url_b + '/users/' + user_id
+response = requests.get(url)
 if response.status_code == 200:
 	print("User retrieved:", response.json())
 else:
 	print("Error:", response.json())
 
 # Update a user
-url_r = url + '/users/' + user_id
+url = url_b + '/users/' + user_id
 data = {"name": "Test User 123"}
-response = requests.put(url_r, json=data)
+response = requests.put(url, json=data)
 if response.status_code == 200:
 	print("User updated:", response.json())
 else:
 	print("Error:", response.json())
 
 # Delete a user
-print('Press enter to delete the user')
-input()
-url_r = url + '/users/' + user_id
-response = requests.delete(url_r)
+url = url_b + '/users/' + user_id
+response = requests.delete(url)
 if response.status_code == 204:
 	print("User deleted successfully")
+else:
+	print("Error:", response.json())
+
+# Add a book
+url = url_b + '/books'
+data = {"author": "Test Author", "title": "Test Title"}
+response = requests.post(url, json=data)
+if response.status_code == 201:
+	print("Book created:", response.json())
+else:
+	print("Error:", response.json())
+
+# Get a book
+book_id = response.json()['id']
+url = url_b + '/books/' + book_id
+response = requests.get(url)
+if response.status_code == 200:
+	print("Book retrieved:", response.json())
+else:
+	print("Error:", response.json())
+
+# Update a book's author
+url = url_b + '/books/' + book_id
+data = {"column": "AUTHOR", "value": "Test Author 123"}
+response = requests.put(url, json=data)
+if response.status_code == 200:
+	print("Book updated:", response.json())
+else:
+	print("Error:", response.json())
+
+# Update a book's title
+url = url_b + '/books/' + book_id
+data = {"column": "TITLE", "value": "Test Title 123"}
+response = requests.put(url, json=data)
+if response.status_code == 200:
+	print("Book updated:", response.json())
+else:
+	print("Error:", response.json())
+
+# Delete a book
+url = url_b + '/books/' + book_id
+response = requests.delete(url)
+if response.status_code == 204:
+	print("Book deleted successfully")
 else:
 	print("Error:", response.json())

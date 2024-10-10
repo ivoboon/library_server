@@ -30,6 +30,24 @@ class Handler(BaseHTTPRequestHandler):
 				self.end_headers()
 				self.wfile.write(b'{"error": "User not found"}')
 		
+		elif resource == 'books' and len(path_parts) > 1:
+			record_id = path_parts[1]
+			book = database.get_book(record_id)
+			if book:
+				self.send_response(200)
+				self.send_header("Content-type", "application/json")
+				self.end_headers()
+				response = {
+					"ID": book[0],
+					"AUTHOR": book[1],
+					"TITLE": book[2]
+				}
+				self.wfile.write(json.dumps(response).encode())
+			else:
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "Book not found"}')
+		
 
 
 	def do_POST(self):
@@ -46,6 +64,13 @@ class Handler(BaseHTTPRequestHandler):
 			self.send_header("Content-type", "application/json")
 			self.end_headers()
 			self.wfile.write(json.dumps({"id": user_id}).encode())
+
+		elif resource == 'books':
+			book_id = database.add_book(data)
+			self.send_response(201)
+			self.send_header("Content-type", "application/json")
+			self.end_headers()
+			self.wfile.write(json.dumps({"id": book_id}).encode())
 
 	
 	def do_PUT(self):
@@ -68,6 +93,19 @@ class Handler(BaseHTTPRequestHandler):
 				self.send_response(404)
 				self.end_headers()
 				self.wfile.write(b'{"error": "User not found"}')
+		
+		elif resource == 'books' and len(path_parts) > 1:
+			record_id = path_parts[1]
+			if database.get_book(record_id):
+				database.update_book(record_id, updated_data)
+				self.send_response(200)
+				self.send_header("Content-type", "application/json")
+				self.end_headers()
+				self.wfile.write(json.dumps({"message:": "Book updated"}).encode())
+			else:
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "Book not found"}')
 
 
 	def do_DELETE(self):
@@ -79,6 +117,17 @@ class Handler(BaseHTTPRequestHandler):
 			record_id = path_parts[1]
 			if database.get_user(record_id):
 				database.delete_user(record_id)
+				self.send_response(204)
+				self.end_headers()
+			else:
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "User not found"}')
+		
+		elif resource == 'books' and len(path_parts) > 1:
+			record_id = path_parts[1]
+			if database.get_book(record_id):
+				database.delete_book(record_id)
 				self.send_response(204)
 				self.end_headers()
 			else:

@@ -66,14 +66,39 @@ def delete_user(user_id):
 	conn.commit()
 	conn.close()
 
-def add_book():
-	pass
+def add_book(book):
+	conn, cursor = connect()
 
-def get_book():
-	pass
+	book_id = str(uuid.uuid4())
+	cursor.execute('INSERT INTO BOOKS (ID, AUTHOR, TITLE) VALUES (?, ?, ?)', (book_id, book['author'], book['title']))
 
-def update_book():
-	pass
+	conn.commit()
+	conn.close()
 
-def delete_book():
-	pass
+	return book_id
+
+def get_book(book_id):
+	conn, cursor = connect()
+
+	cursor.execute('SELECT ID, AUTHOR, TITLE FROM BOOKS WHERE ID = ?', (book_id,))
+	book = cursor.fetchone()
+	conn.close()
+
+	return book
+
+def update_book(book_id, book):
+	conn, cursor = connect()
+	
+
+	cursor.execute(f"UPDATE BOOKS SET {book['column']} = ? WHERE ID = ?", (book['value'], book_id))
+
+	conn.commit()
+	conn.close()
+
+def delete_book(book_id):
+	conn, cursor = connect()
+
+	cursor.execute('DELETE FROM BOOKS WHERE ID = ?', (book_id,))
+
+	conn.commit()
+	conn.close()
