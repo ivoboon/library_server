@@ -1,5 +1,6 @@
 import sqlite3
 import uuid
+import datetime
 
 def connect():
 	database = 'library.db'
@@ -10,19 +11,36 @@ def connect():
 
 def initialise_database():
 	conn, cursor = connect()
+
+	# Users table
 	cursor.execute('''
 		CREATE TABLE IF NOT EXISTS USERS (
-		   ID TEXT PRIMARY KEY NOT NULL,
-		   NAME TEXT NOT NULL
+			ID TEXT PRIMARY KEY NOT NULL,
+			NAME TEXT NOT NULL
 		)
 	''')
+
+	# Books table
 	cursor.execute('''
 		CREATE TABLE IF NOT EXISTS BOOKS (
-		   ID TEXT PRIMARY KEY NOT NULL,
-		   AUTHOR TEXT NOT NULL,
-		   TITLE TEXT NOT NULL
+			ID TEXT PRIMARY KEY NOT NULL,
+			AUTHOR TEXT NOT NULL,
+			TITLE TEXT NOT NULL,
+			AVAILABLE BOOLEAN DEFAULT TRUE
 		)
 	''')
+
+	# Transactions table
+	cursor.execute('''
+		CREATE TABLE IF NOT EXISTS TRANSACTIONS (
+			ID TEXT PRIMARY KEY NOT NULL,
+			TIMESTAMP TEXT NOT NULL,
+			USER_ID TEXT NOT NULL,
+			BOOK_ID TEXT NOT NULL,
+			DIRECTION TEXT NOT NULL
+		)
+	''')
+
 	conn.commit()
 	conn.close()
 
@@ -46,7 +64,13 @@ def get_user(user_id):
 	user = cursor.fetchone()
 	conn.close()
 
-	return user
+	if user:
+		return {
+			"id": user[0],
+			"name": user[1]
+		}
+
+	return None
 
 
 def update_user(user_id, user):
@@ -66,6 +90,7 @@ def delete_user(user_id):
 	conn.commit()
 	conn.close()
 
+
 def add_book(book):
 	conn, cursor = connect()
 
@@ -77,14 +102,24 @@ def add_book(book):
 
 	return book_id
 
+
 def get_book(book_id):
 	conn, cursor = connect()
 
-	cursor.execute('SELECT ID, AUTHOR, TITLE FROM BOOKS WHERE ID = ?', (book_id,))
+	cursor.execute('SELECT ID, AUTHOR, TITLE, AVAILABLE FROM BOOKS WHERE ID = ?', (book_id,))
 	book = cursor.fetchone()
 	conn.close()
 
-	return book
+	if book:
+		return {
+			"id": book[0],
+			"author": book[1],
+			"title": book[2],
+			"available": book[3]
+		}
+
+	return None
+
 
 def update_book(book_id, book):
 	conn, cursor = connect()
@@ -95,6 +130,7 @@ def update_book(book_id, book):
 	conn.commit()
 	conn.close()
 
+
 def delete_book(book_id):
 	conn, cursor = connect()
 
@@ -102,3 +138,36 @@ def delete_book(book_id):
 
 	conn.commit()
 	conn.close()
+
+
+def transaction(transaction):
+	conn, cursor = connect()
+
+	transaction_id = str(uuid.uuid4())
+	transaction_timestamp = datetime.datetime.now().isoformat()
+
+	available = ''
+	if transaction['direction'] == 'in':
+		available = True
+	elif transaction['direction'] == 'out':
+		available = False
+	else:
+		return
+
+	try:
+		conn.execute('BEGIN TRANSACTION')
+
+		conn.execute('UPDATE BOOKS SET AVAILABLE = ? WHERE ID = ?', (available, transaction['book_id']))
+		conn.execute("INSERT INTO TRANSACTIONS (ID, TIMESTAMP, USER_ID, BOOK_ID, DIRECTION) VALUES (?, ?, ?, ?, ?)", (transaction_id, transaction_timestamp, transaction['user_id'], transaction['book_id'], transaction['direction']))
+
+		conn.commit()
+
+		return transaction_id
+
+	except sqlite3.Error as e:
+		conn.rollback()
+
+		return
+	
+	finally:
+		conn.close()

@@ -9,6 +9,7 @@ class Handler(BaseHTTPRequestHandler):
 		path_parts = self.path.strip('/').split('/')
 		return path_parts
 
+
 	def do_GET(self):
 		path_parts = self.get_path_parts()
 		resource = path_parts[0]
@@ -20,11 +21,7 @@ class Handler(BaseHTTPRequestHandler):
 				self.send_response(200)
 				self.send_header("Content-type", "application/json")
 				self.end_headers()
-				response = {
-					"ID": user[0],
-					"NAME": user[1]
-				}
-				self.wfile.write(json.dumps(response).encode())
+				self.wfile.write(json.dumps(user).encode())
 			else:
 				self.send_response(404)
 				self.end_headers()
@@ -37,18 +34,12 @@ class Handler(BaseHTTPRequestHandler):
 				self.send_response(200)
 				self.send_header("Content-type", "application/json")
 				self.end_headers()
-				response = {
-					"ID": book[0],
-					"AUTHOR": book[1],
-					"TITLE": book[2]
-				}
-				self.wfile.write(json.dumps(response).encode())
+				self.wfile.write(json.dumps(book).encode())
 			else:
 				self.send_response(404)
 				self.end_headers()
 				self.wfile.write(b'{"error": "Book not found"}')
 		
-
 
 	def do_POST(self):
 		path_parts = self.get_path_parts()
@@ -71,6 +62,43 @@ class Handler(BaseHTTPRequestHandler):
 			self.send_header("Content-type", "application/json")
 			self.end_headers()
 			self.wfile.write(json.dumps({"id": book_id}).encode())
+		
+		elif resource == 'transactions':
+			if not database.get_user(data['user_id']):
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "User not found"}')
+				return
+			
+			if not database.get_book(data['book_id']):
+				self.send_response(404)
+				self.end_headers()
+				self.wfile.write(b'{"error": "Book not found"}')
+				return
+
+			if data['direction'] == 'out' and not bool(database.get_book(data['book_id'])['available']):
+				self.send_response(400)
+				self.end_headers()
+				self.wfile.write(b'{"error": "Book is not available"}')
+				return
+			
+			if data['direction'] == 'in' and bool(database.get_book(data['book_id'])['available']):
+				self.send_response(400)
+				self.end_headers()
+				self.wfile.write(b'{"error": "Book is already checked in"}')
+				return
+			
+			transaction_id = database.transaction(data)
+			if transaction_id:
+				self.send_response(201)
+				self.send_header("Content-type", "application/json")
+				self.end_headers()
+				self.wfile.write(json.dumps({"id": transaction_id}).encode())
+			else:
+				self.send_response(422)
+				self.send_header("Content-type", "application/json")
+				self.end_headers()
+				self.wfile.write(b'{"error": "Unprocessable content"}')
 
 	
 	def do_PUT(self):
@@ -135,12 +163,14 @@ class Handler(BaseHTTPRequestHandler):
 				self.end_headers()
 				self.wfile.write(b'{"error": "User not found"}')
 
+
 def get_ip_address():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	s.connect(("8.8.8.8", 80))
 	ip = s.getsockname()[0]
 	s.close()
 	return ip
+
 
 def main():
 	port = 8080
@@ -153,6 +183,7 @@ def main():
 	httpd = HTTPServer(server_address, Handler)
 	print(f'Serving on port {ip}:{port}...')
 	httpd.serve_forever()
+
 
 if __name__ == "__main__":
 	main()

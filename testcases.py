@@ -39,14 +39,6 @@ if response.status_code == 200:
 else:
 	print("Error:", response.json())
 
-# Delete a user
-url = url_b + '/users/' + user_id
-response = requests.delete(url)
-if response.status_code == 204:
-	print("User deleted successfully")
-else:
-	print("Error:", response.json())
-
 # Add a book
 url = url_b + '/books'
 data = {"author": "Test Author", "title": "Test Title"}
@@ -83,10 +75,63 @@ if response.status_code == 200:
 else:
 	print("Error:", response.json())
 
-# Delete a book
+# Update a book's availability
 url = url_b + '/books/' + book_id
-response = requests.delete(url)
-if response.status_code == 204:
-	print("Book deleted successfully")
+data = {"column": "AVAILABLE", "value": "FALSE"}
+response = requests.put(url, json=data)
+if response.status_code == 200:
+	print("Book updated:", response.json())
 else:
 	print("Error:", response.json())
+
+# Check out a book
+url = url_b + '/transactions'
+data = {"user_id": user_id, "book_id": book_id, "direction": "out"}
+response = requests.post(url, json=data)
+if response.status_code == 201:
+	print("Transaction done:", response.json())
+else:
+	print("Error:", response.json())
+
+# Check out a book that's checked out
+url = url_b + '/transactions'
+data = {"user_id": user_id, "book_id": book_id, "direction": "out"}
+response = requests.post(url, json=data)
+if response.status_code == 201:
+	print("Transaction done:", response.json())
+else:
+	print("Error:", response.json())
+
+# Check in a book that's checked out
+url = url_b + '/transactions'
+data = {"user_id": user_id, "book_id": book_id, "direction": "in"}
+response = requests.post(url, json=data)
+if response.status_code == 201:
+	print("Transaction done:", response.json())
+else:
+	print("Error:", response.json())
+
+# Check in a book that's checked in
+url = url_b + '/transactions'
+data = {"user_id": user_id, "book_id": book_id, "direction": "in"}
+response = requests.post(url, json=data)
+if response.status_code == 201:
+	print("Transaction done:", response.json())
+else:
+	print("Error:", response.json())
+
+# # Delete a user
+# url = url_b + '/users/' + user_id
+# response = requests.delete(url)
+# if response.status_code == 204:
+# 	print("User deleted successfully")
+# else:
+# 	print("Error:", response.json())
+
+# # Delete a book
+# url = url_b + '/books/' + book_id
+# response = requests.delete(url)
+# if response.status_code == 204:
+# 	print("Book deleted successfully")
+# else:
+# 	print("Error:", response.json())
